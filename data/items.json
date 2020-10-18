@@ -1,0 +1,14 @@
+[
+  {"id": "1",
+   "name": "Coca-Cola",
+    "description": "drink"
+  },
+  {"id": "2",
+    "name": "Pepsi-Cola",
+    "description": "drink"
+  },
+  {"id": "3",
+    "name": "Sprite",
+    "description": "drink"
+  }
+]
