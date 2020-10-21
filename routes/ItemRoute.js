@@ -3,8 +3,24 @@ import items from '../data/items.json';
 import ldsh from 'lodash';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
 
 const router = express.Router();
+
+const DB_USERNAME = '';
+const DB_PASSWOD = '';
+const DB_URL = 'mongodb://localhost:27017/item';
+// const DB_URL = `mongodb://${DB_USER}:${DB_USER_PASSWORD}@ds215380.mlab.com:15380/sandboxamigoscode`;
+mongoose.connect(DB_URL);
+
+const db = mongoose.connection;
+
+db.once('open', () => {
+    console.log('----  Connection established -------');
+});
+
+
+
 router.use(morgan('tiny'));
 router.use(bodyParser.json());
 
@@ -24,10 +40,19 @@ router.get('/:id',     (req, res) => {
 //  npm i -S lodash    !!!!!!!!
 
 router.post('/',     (req, res) => {
-    console.log(`POST method is processed`);
+    console.log(`POST method is processed  from app.js`);
     console.log(req.body);
 
-    res.end();
+    const id = new mongoose.Types.ObjectId();
+    const itemToPersist = Object.assign({
+        _id: id
+    }, req.body);
+
+    const item = new ItemModel(itemToPersist);
+
+    item.save().then((err, student) => {
+        if (err) res.status(500).send(err);
+        res.json(item);
 });
 
 router.put('/',     (req, res) => {
