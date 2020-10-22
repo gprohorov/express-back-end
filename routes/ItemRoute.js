@@ -7,10 +7,12 @@ import mongoose from 'mongoose';
 
 const router = express.Router();
 
+
+
 const DB_USERNAME = '';
 const DB_PASSWOD = '';
 const DB_URL = 'mongodb://localhost:27017/item';
-// const DB_URL = `mongodb://${DB_USER}:${DB_USER_PASSWORD}@ds215380.mlab.com:15380/sandboxamigoscode`;
+
 mongoose.connect(DB_URL);
 
 const db = mongoose.connection;
@@ -19,27 +21,39 @@ db.once('open', () => {
     console.log('----  Connection established -------');
 });
 
-
-
-router.use(morgan('tiny'));
-router.use(bodyParser.json());
-
-router.get('/',     (req, res) => {
-    res.json(items);
+const ItemSchema = mongoose.Schema({
+    _id: mongoose.Schema.Types.ObjectId,
+    name: String,
+    description: String
 });
 
-router.get('/:id',     (req, res) => {
-    const item = ldsh.find(items, item => item.id === req.params.id)
-    if(item){
-        res.json(item)
-    }else {
-        res.send(`item ${req.params.id} is absent` )
-    }
+const ItemModel = mongoose.model('Item', ItemSchema);
+
+
+
+router.get('/', (req, res) => {
+
+    ItemModel.find((err, items) => {
+        if (err) res.status(500).send(err);
+        res.json(items);
+    });
 });
 
-//  npm i -S lodash    !!!!!!!!
+router.get('/:id', (req, res) => {
+
+    ItemModel.findById(req.params.id, (err, item) => {
+        if (err) res.status(500).send(err);
+        if (item) {
+            res.json(item);
+        } else {
+            res.status(404).send(`Item with id ${req.params.id} not found.`);
+        }
+    });
+});
+
 
 router.post('/',     (req, res) => {
+
     console.log(`POST method is processed  from app.js`);
     console.log(req.body);
 
@@ -49,20 +63,31 @@ router.post('/',     (req, res) => {
     }, req.body);
 
     const item = new ItemModel(itemToPersist);
+    item.save().then(i => res.send(i) );
 
-    item.save().then((err, student) => {
+});
+
+router.put('/:id', (req, res) => {
+    ItemModel.findById(req.params.id, (err, item) => {
+      // if (err) res.status(500).send(err);
+        if (item) {
+            item.name = req.body.name;
+            item.description = req.body.description;
+            item.save().then( i => {
+             //   if (err) res.status(500).send(err);
+                res.json(i);
+            });
+        } else {
+            res.status(404).send(`Item with id ${req.params.id} not found.`);
+        }
+    });
+});
+
+router.delete('/:id', (req, res) => {
+    ItemModel.findByIdAndRemove(req.params.id, (err, item) => {
         if (err) res.status(500).send(err);
-        res.json(item);
-});
-
-router.put('/',     (req, res) => {
-    console.log(`PUT method is processed`);
-    res.end();
-});
-
-router.delete('/',     (req, res) => {
-    console.log(`DELETE method is processed`);
-    res.end();
+        res.status(200).send(`Item with id ${req.params.id} was deleted`);
+    });
 });
 
 module.exports = router;
